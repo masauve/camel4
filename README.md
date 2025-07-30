@@ -42,6 +42,6 @@ quarkus extension add 'quarkus-openshift'
 quarkus ext add io.quarkus:quarkus-jdbc-postgresql
 ```
 
-##Pour déployer:
+## Pour déployer:
 `./mvnw install -Dquarkus.openshift.deploy=true`
 
