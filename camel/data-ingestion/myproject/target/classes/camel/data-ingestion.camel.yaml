@@ -1,0 +1,68 @@
+- errorHandler:
+    deadLetterChannel:
+      deadLetterUri: "kafka:errors?brokers={{kafka.brokers.url}}"
+
+- route:
+    id: data-ingestion
+    description: Data ingestion
+    from:
+      id: from-2954
+      description: Consume transactions
+      uri: kafka:transactions
+      parameters:
+        brokers: "{{kafka.brokers.url}}"
+        clientId: data-ingestion-client
+      steps:
+        - unmarshal:
+            id: unmarshal-1178
+            description: Parse CSV format
+            csv:
+              allowMissingColumnNames: true
+              trim: true
+        - split:
+            id: split-6116
+            description: Split CSV records
+            steps: []
+            expression:
+              simple:
+                expression: ${body}
+        - to:
+            id: to-2761
+            description: Send the record to storage
+            uri: direct:store-record-endpoint
+            parameters: {}
+- route:
+    id: record-storage
+    description: Record storage into DB
+    from:
+      id: from-3238
+      uri: direct:store-record-endpoint
+      parameters: {}
+      steps:
+        - setHeaders:
+            id: setHeaders-3758
+            headers:
+              - expression:
+                  simple:
+                    expression: ${body[0]}
+                    resultType: java.lang.String
+                name: timestamp
+              - expression:
+                  simple:
+                    expression: ${body[1]}
+                    resultType: java.lang.String
+                name: account
+              - expression:
+                  simple:
+                    expression: ${body[2]}
+                    resultType: java.lang.Float
+                name: amount
+        - to:
+            id: to-1127
+            uri: sql:INSERT INTO transactions (timestamp, account, amount) VALUES
+              (:#${headers.timestamp}, :#${headers.account},
+              :#${headers.amount});
+            parameters:
+              dataSource: "#source"
+            disabled: false
+

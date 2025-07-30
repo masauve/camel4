@@ -1,0 +1,68 @@
+- rest:
+    id: rest-1237
+    get:
+      - id: get-transactions
+        description: An endpoint to retrieve the last 10 transactions
+        disabled: false
+        param:
+          - description: Limit how many records are returned
+            dataType: integer
+            name: limit
+            required: false
+            type: query
+        path: /transactions
+        produces: application/json
+        to: direct:get-transactions
+    post:
+      - id: post-demo
+        description: post request to demo capabilities
+        consumes: text/plain
+        produces: application/json
+        disabled: false
+        param:
+          - description: demo value
+            dataType: string
+            name: message
+            required: true
+        path: /messages
+        to: direct:post-messages
+- route:
+    id: route-2535
+    from:
+      description: An endpoint to demo camel capabilities
+      uri: direct:post-messages
+      steps:
+        - setBody:
+            id: setBody-1094
+            expression:
+                 simple:
+                    expression: "${headers.message}"
+        - to: log:info
+        - to:
+            id: to-1796
+            description: Submit transaction record
+            uri: kafka:transactions
+            parameters:
+              brokers: localhost:9092
+              clientId: load-generator-client
+- route:
+    id: route-1526
+    from:
+      description: An endpoint to retrieve the last 10 transactions
+      uri: direct:get-transactions
+      steps:
+        - to:
+            id: to-1127
+            description: Retrieve the last n records
+            uri: sql:SELECT * FROM transactions ORDER BY timestamp DESC LIMIT
+              :#${headerAs(limit, int)};
+            parameters:
+              dataSource: "#source"
+            disabled: false
+        - marshal:
+            id: marshal-2107
+            description: Convert to JSON
+            json:
+              prettyPrint: true
+              useList: true
+
