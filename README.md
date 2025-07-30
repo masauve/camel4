@@ -31,16 +31,15 @@ podman-compose -f kafka-postgres.compose.yaml up -d
 
 
 # Utilisation
-## 
 
 pour lancer la route data en mode local:
-camel run data-ingestion.camel.yaml local.properties
+`camel run data-ingestion.camel.yaml local.properties`
 
 Pour exporter sur OpenShift (déjà fait dans le github)
-camel export --runtime=quarkus --gav=com.demo:data:1.0-SNAPSHOT --directory=./myproject
-quarkus extension add 'quarkus-openshift'
-quarkus ext add io.quarkus:quarkus-jdbc-postgresql
+`camel export --runtime=quarkus --gav=com.demo:data:1.0-SNAPSHOT --directory=./myproject`
+`quarkus extension add 'quarkus-openshift'`
+`quarkus ext add io.quarkus:quarkus-jdbc-postgresql`
 
 Pour déployer:
-./mvnw install -Dquarkus.openshift.deploy=true
+`./mvnw install -Dquarkus.openshift.deploy=tru`e
 
